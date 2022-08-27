@@ -4,8 +4,9 @@ tic;
 file_list = ['subject01'; 'subject02'; 'subject03'; 'subject04'; 'subject05'; 'subject06'; 'subject07'; 'subject08'; 'subject09'; 'subject10';...
      'subject11'; 'subject12'; 'subject13'; 'subject14'; 'subject15'; 'subject16'; 'subject17'; 'subject18'; 'subject19'; 'subject20';...
      'subject21'; 'subject22'; 'subject23'; 'subject24'; 'subject25'; 'subject26'; 'subject27'; 'subject28'; 'subject29'; 'subject30']; 
- 
-sub_no = 30; 
+%
+
+sub_no = 29; 
 % ntrial = 64;
 ntrial = 20;
 trial = (1:1:64);
@@ -19,10 +20,11 @@ rho_lb = 0;
 beta_ub = 10; 
 rho_ub = 10;
 options = optimset('MaxFunEval',100000,'Display','off','algorithm','active-set', 'FunValCheck', 'on');
-
+MAP =zeros(1,1);
 
 for sub_no = 1 : length(file_list)
     L = ls(['*' file_list(sub_no,:) '*']);
+   
     
     for i = 1:2
         load(L(i, : ));
@@ -84,9 +86,10 @@ for sub_no = 1 : length(file_list)
             x0 = [rand, rand, exprnd(1), rand];
             dealer = 1; %신뢰
 
-            [Xfit, NegMAP] = fmincon(@(x) computeMAP_2alpha (x, T_a, T_r, T_True, T_trial_reward, T_trial_penalty), x0, [], [], [], [],...
+            [Xfit, T_NegMAP] = fmincon(@(x) computeMAP_2alpha (x, T_a, T_r, T_True, T_trial_reward, T_trial_penalty), x0, [], [], [], [],...
                 [0, 0, beta_lb, 0], [1, 1, beta_ub, 1], [], options);
-            T_pars_MAP(sub_no, :) = [Xfit, NegMAP];
+            T_pars_MAP(sub_no, :) = [Xfit, T_NegMAP];
+            T_MAP(sub_no, 1) = T_NegMAP;
             
             % Untrustworthy
             options = optimset('MaxFunEval',100000,'Display','off','algorithm','active-set');%
@@ -94,9 +97,10 @@ for sub_no = 1 : length(file_list)
             x0 = [rand, rand, exprnd(1), rand];
             dealer = 0; %비신뢰
 
-            [Xfit, NegMAP] = fmincon(@(x) computeMAP_2alpha (x, Un_a, Un_r, Un_True, Un_trial_reward, Un_trial_penalty), x0, [], [], [], [],...
+            [Xfit, UN_NegMAP] = fmincon(@(x) computeMAP_2alpha (x, Un_a, Un_r, Un_True, Un_trial_reward, Un_trial_penalty), x0, [], [], [], [],...
                 [0, 0, beta_lb, 0], [1, 1, beta_ub, 1], [], options);
-            Un_pars_MAP(sub_no, :) = [Xfit, NegMAP];
+            Un_pars_MAP(sub_no, :) = [Xfit, UN_NegMAP];
+            UN_MAP(sub_no, 1) = UN_NegMAP;
 
 
     end
@@ -161,7 +165,7 @@ function NegMAP = computeMAP_2alpha (p1, a, r,  True,  trial_reward, trial_penal
     betaProb = gampdf(beta, 1.2, 5);
     wProb = betapdf(w, 1.1, 1.1);    
     
-     NegMAP = -sum(log(choiceProb) + log(alpha_MFProb) + log(alpha_MBProb)  + log(betaProb) + log(wProb));
+    NegMAP = -sum(log(choiceProb) + log(alpha_MFProb) + log(alpha_MBProb)  + log(betaProb) + log(wProb));
  
 end
 
