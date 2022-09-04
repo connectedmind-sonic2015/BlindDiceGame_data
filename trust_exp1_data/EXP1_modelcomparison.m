@@ -39,8 +39,8 @@ betaCons_T_hessian = zeros(3,3,sub_no);
 betaCons_UN_hessian = zeros(3,3,sub_no);
 
 T_Model_evidence_hybrid = zeros(sub_no, 1);
-T_Model_evidence_MF_only = zeros(1,sub_no, 1);
-T_Model_evidence_MB_only = zeros(1,sub_no, 1);
+T_Model_evidence_MF_only = zeros(sub_no, 1);
+T_Model_evidence_MB_only = zeros(sub_no, 1);
 
 Un_Model_evidence_hybrid = zeros(sub_no, 1);
 Un_Model_evidence_MF_only = zeros(sub_no, 1);
@@ -196,15 +196,21 @@ for sub_no = 1 : length(file_list)
             
 end
 
+%% Compute Model evidence: fmincon 내부에서 minimum 값을 계산하여, negMAP로 값을 산출했었음.
 for k = 1 : sub_no
-    T_Model_evidence_hybrid(k, 1) = Hybrid_T_MAP(k, 1) + 4/2*log(pi) + 1/2*log(det(Hybrid_T_hessian(:, :, k)));
-    T_Model_evidence_MF_only(k, 1) = MFonly_T_MAP(k, 1) + 3/2*log(pi) + 1/2*log(det(MFonly_T_hessian(:, :, k)));
-    T_Model_evidence_MB_only(k, 1) = MBonly_T_MAP(k, 1) + 3/2*log(pi) + 1/2*log(det(MBonly_T_hessian(:, :, k)));    
+    T_Model_evidence_hybrid(k, 1) = Hybrid_T_MAP(k, 1)*-1 + 4/2*log(pi) + 1/2*log(det(Hybrid_T_hessian(:, :, k)));
+    T_Model_evidence_MF_only(k, 1) = MFonly_T_MAP(k, 1)*-1 + 3/2*log(pi) + 1/2*log(det(MFonly_T_hessian(:, :, k)));
+    T_Model_evidence_MB_only(k, 1) = MBonly_T_MAP(k, 1)*-1 + 3/2*log(pi) + 1/2*log(det(MBonly_T_hessian(:, :, k)));
+    T_Model_evidence_beta(k, 1) = betaCons_T_MAP(k, 1)*-1 + 4/2*log(pi) + 1/2*log(det(Hybrid_T_hessian(:, :, k)));
 
-    Un_Model_evidence_hybrid(k, 1) = Hybrid_UN_MAP(k, 1) + 4/2*log(pi) + 1/2*log(det(Hybrid_UN_hessian(:, :, k)));
-    Un_Model_evidence_MF_only(k, 1) = MFonly_UN_MAP(k, 1) + 3/2*log(pi) + 1/2*log(det(MFonly_UN_hessian(:, :, k)));
-    Un_Model_evidence_MB_only(k, 1) = MBonly_UN_MAP(k, 1) + 3/2*log(pi) + 1/2*log(det(MBonly_UN_hessian(:, :, k)));    
+    Un_Model_evidence_hybrid(k, 1) = Hybrid_UN_MAP(k, 1)*-1 + 4/2*log(pi) + 1/2*log(det(Hybrid_UN_hessian(:, :, k)));
+    Un_Model_evidence_MF_only(k, 1) = MFonly_UN_MAP(k, 1)*-1 + 3/2*log(pi) + 1/2*log(det(MFonly_UN_hessian(:, :, k)));
+    Un_Model_evidence_MB_only(k, 1) = MBonly_UN_MAP(k, 1)*-1 + 3/2*log(pi) + 1/2*log(det(MBonly_UN_hessian(:, :, k)));    
+    Un_Model_evidence_beta(k, 1) = betaCons_UN_MAP(k, 1)*-1 + 4/2*log(pi) + 1/2*log(det(Hybrid_T_hessian(:, :, k)));
 end
+
+
+%% Compute GBF
 
 
 
@@ -260,7 +266,7 @@ function NegMAP = computeMAP (p1, a, r,  True,  trial_reward, trial_penalty)
     end
 
     % compute negative log-likelihood
-    NegLL = -sum(log(choiceProb));
+    % NegLL = -sum(log(choiceProb));
         
     alpha_MFProb = betapdf(alpha_MF, 1.1, 1.1);
     alpha_MBProb = betapdf(alpha_MB, 1.1, 1.1);
