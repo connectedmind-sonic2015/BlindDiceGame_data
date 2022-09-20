@@ -19,13 +19,14 @@ Un = zeros(30,1);
 Gnk = zeros(30,3);
 beta = zeros(3,1);
 cnt = 1;
+diff_ratio = zeros(3,1);
 
 while 1
     cnt = cnt + 1
     % compute gnk
     for i = 1 : num_subject
         for j = 1 : num_m
-            Unk(i, j) = exp (T_model_evidence(i, j) + psi(T_alpha(j, 1)) - psi(sum(T_alpha(:, 1))));
+            Unk(i, j) = exp (T_model_evidence(i, j) + psi(T_alpha(j, (cnt - 1))) - psi(sum(T_alpha(:, (cnt - 1 )))));
         end
         Un(i, 1) = sum(Unk(i,:));
     end
@@ -44,7 +45,9 @@ while 1
     % update α = α0 + β
     T_alpha( : , cnt ) = T_alpha( :, cnt-1) + beta;
     diff_ratio = T_alpha( :, cnt - 1) ./ T_alpha( :, cnt )
-    if mean(diff_ratio) >= 0.99999  % until convergence
+    if diff_ratio >= 0.999  % until convergence
+%     diff = T_alpha( :, cnt - 1) - T_alpha( :, cnt );
+%     if abs(diff) <= 0.00001  % until convergence
        T_alpha( :, cnt)
         break
     end
@@ -59,13 +62,14 @@ Un = zeros(30,1);
 Gnk = zeros(30,3);
 beta = zeros(3,1);
 cnt = 1;
+diff_ratio = zeros(3,1);
 
 while 1
     cnt = cnt + 1
     % compute gnk
     for i = 1 : num_subject
         for j = 1 : num_m
-            Unk(i, j) = exp (UN_model_evidence(i, j) + psi(UN_alpha(j, 1)) - psi(sum(UN_alpha(:, 1))));
+            Unk(i, j) = exp (UN_model_evidence(i, j) + psi(UN_alpha(j, (cnt - 1))) - psi(sum(UN_alpha(:, (cnt - 1)))));
         end
         Un(i, 1) = sum(Unk(i,:));
     end
@@ -84,7 +88,9 @@ while 1
     % update α = α0 + β
     UN_alpha( : , cnt ) = UN_alpha( :, cnt-1) + beta;
     diff_ratio = UN_alpha( :, cnt - 1) ./ UN_alpha( :, cnt )
-    if mean(diff_ratio) >= 0.99999  % until convergence
+    if diff_ratio >= 0.999  % until convergence
+%     diff = UN_alpha( :, cnt - 1) - UN_alpha( :, cnt )
+%     if abs(diff) <= 0.00001  % until convergence
        UN_alpha( :, cnt)
         break
     end
